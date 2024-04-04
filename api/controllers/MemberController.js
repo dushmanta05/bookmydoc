@@ -5,11 +5,12 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const { checkRequiredFields } = require("../utils/utils");
-
-function capitalizeName(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-}
+const {
+  trimWhitespace,
+  checkNullValues,
+  checkRequiredFields,
+  isEmailValid,
+} = require("../utils/utils");
 
 module.exports = {
   create: async function (req, res) {
@@ -21,18 +22,25 @@ module.exports = {
       "disease",
     ];
 
-    const requiredFieldsresponse = checkRequiredFields(
-      res,
-      req.body,
-      requiredFields
-    );
-    if (requiredFieldsresponse) {
-      return requiredFieldsresponse;
+    const trimReqBody = trimWhitespace(req.body);
+    const { firstName, lastName, email, password, disease } = trimReqBody;
+
+    const nullValuesResponse = checkNullValues(trimReqBody);
+    if (!nullValuesResponse.status) {
+      return res.status(400).json(nullValuesResponse);
     }
 
-    const emailValidationResponse = isEmailValid(res, req.body.email);
-    if (emailValidationResponse) {
-      return emailValidationResponse;
+    const requiredFieldsResponse = checkRequiredFields(
+      trimReqBody,
+      requiredFields
+    );
+    if (!requiredFieldsResponse.status) {
+      return res.status(400).json(requiredFieldsResponse);
+    }
+
+    const emailValidationResponse = isEmailValid(email);
+    if (!emailValidationResponse.status) {
+      return res.status(400).json(emailValidationResponse);
     }
 
     const existingUser = await User.findOne({ email: email });
@@ -54,7 +62,7 @@ module.exports = {
         userType: "member",
       };
 
-      let createdUser = await User.create(userData).fetch();
+      const createdUser = await User.create(userData).fetch();
 
       try {
         let createdMember = await Member.create({
@@ -72,14 +80,14 @@ module.exports = {
         return res.status(400).json({
           status: false,
           message: "failed to create member",
-          error: "invalid member details",
+          error: error.details,
         });
       }
     } catch (error) {
       return res.status(500).json({
         status: false,
-        message: "Failed to create member",
-        error: "invalid data entered",
+        message: "failed to create member",
+        error: error.details,
       });
     }
   },

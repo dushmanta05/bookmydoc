@@ -6,9 +6,10 @@
  */
 
 const {
+  trimWhitespace,
+  checkNullValues,
   checkRequiredFields,
   isEmailValid,
-  trimWhitespace,
 } = require("../utils/utils");
 
 module.exports = {
@@ -22,20 +23,24 @@ module.exports = {
     ];
 
     const trimReqBody = trimWhitespace(req.body);
+    const { firstName, lastName, email, password, speciality } = trimReqBody;
+
+    const nullValuesResponse = checkNullValues(trimReqBody);
+    if (!nullValuesResponse.status) {
+      return res.status(400).json(nullValuesResponse);
+    }
 
     const requiredFieldsResponse = checkRequiredFields(
-      res,
       trimReqBody,
       requiredFields
     );
-    if (requiredFieldsResponse) {
-      return requiredFieldsResponse;
+    if (!requiredFieldsResponse.status) {
+      return res.status(400).json(requiredFieldsResponse);
     }
-    console.log(trimReqBody);
 
-    const emailValidationResponse = isEmailValid(res, trimReqBody.email);
-    if (emailValidationResponse) {
-      return emailValidationResponse;
+    const emailValidationResponse = isEmailValid(email);
+    if (!emailValidationResponse.status) {
+      return res.status(400).json(emailValidationResponse);
     }
 
     const existingUser = await User.findOne({ email: email });
@@ -57,7 +62,7 @@ module.exports = {
         userType: "doctor",
       };
 
-      let createdUser = await User.create(userData).fetch();
+      const createdUser = await User.create(userData).fetch();
 
       try {
         let createdDoctor = await Doctor.create({
@@ -75,14 +80,14 @@ module.exports = {
         return res.status(400).json({
           status: false,
           message: "failed to create doctor",
-          error: "invalid member details",
+          error: error.details,
         });
       }
     } catch (error) {
       return res.status(500).json({
         status: false,
         message: "failed to create doctor",
-        error: "invalid data entered",
+        error: error.details,
       });
     }
   },
