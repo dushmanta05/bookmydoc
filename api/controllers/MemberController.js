@@ -5,6 +5,9 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+const path = require("path");
+const ejs = require("ejs");
+const { sendMail } = require("../utils/sendMail");
 const {
   trimWhitespace,
   checkNullValues,
@@ -53,6 +56,15 @@ module.exports = {
       });
     }
 
+    const htmlFilePath = path.join(
+      __dirname,
+      "..",
+      "emails",
+      "member-welcome.ejs"
+    );
+
+    const renderedHtml = await ejs.renderFile(htmlFilePath, { firstName });
+
     try {
       const userData = {
         firstName: firstName,
@@ -69,6 +81,10 @@ module.exports = {
           disease,
           user: createdUser.id,
         }).fetch();
+
+        sendMail(email, "Welcome to Doctegrity", renderedHtml).catch((error) =>
+          console.log(error)
+        );
 
         return res.status(201).json({
           status: true,
