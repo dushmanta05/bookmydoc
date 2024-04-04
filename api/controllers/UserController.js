@@ -8,12 +8,29 @@
 module.exports = {
   create: async function (req, res) {
     try {
-      const data = req.allParams();
-      return res
-        .status(201)
-        .json({ message: "User created successfully", data: data });
+      const userData = req.allParams();
+      const existingUser = await User.findOne({ email: userData.email });
+
+      if (existingUser) {
+        return res.status(400).json({
+          status: false,
+          message: "email address already in use",
+          error: "duplicate email address",
+        });
+      }
+
+      const createdUser = await User.create(userData).fetch();
+      return res.status(201).json({
+        status: true,
+        message: "user created successfully",
+        data: createdUser,
+      });
     } catch (error) {
-      return res.status(500).json({ error: "Error" });
+      return res.status(500).json({
+        status: false,
+        message: "failed to create user",
+        error: error.details,
+      });
     }
   },
 };
