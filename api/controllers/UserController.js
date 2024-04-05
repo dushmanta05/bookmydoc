@@ -11,6 +11,7 @@ const {
   checkNullValues,
   checkRequiredFields,
   isEmailValid,
+  hashPassword,
 } = require("../utils/utils");
 
 module.exports = {
@@ -54,8 +55,11 @@ module.exports = {
 
       const resetToken = generateToken();
 
+      const hashedPassword = await hashPassword(trimReqBody.password);
+
       const userData = {
         ...trimReqBody,
+        password: hashedPassword,
         resetToken: resetToken,
       };
 
@@ -88,8 +92,10 @@ module.exports = {
         });
       }
 
+      const hashedPassword = await hashPassword(newPassword);
+
       const updatedUser = await User.update({ resetToken: token })
-        .set({ password: newPassword, resetToken: null })
+        .set({ password: hashedPassword, resetToken: null })
         .fetch();
 
       if (!updatedUser) {

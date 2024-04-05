@@ -13,6 +13,7 @@ const {
   checkNullValues,
   checkRequiredFields,
   isEmailValid,
+  hashPassword,
 } = require("../utils/utils");
 const { generateToken } = require("../utils/tokenUtils");
 
@@ -56,7 +57,7 @@ module.exports = {
         error: "duplicate email address",
       });
     }
-
+    const hashedPassword = await hashPassword(password);
     const resetToken = generateToken();
 
     try {
@@ -64,7 +65,7 @@ module.exports = {
         firstName: firstName,
         lastName: lastName,
         email: email,
-        password: password,
+        password: hashedPassword,
         resetToken: resetToken,
         userType: "member",
       };

@@ -1,3 +1,5 @@
+const bcrypt = require("bcrypt");
+
 function trimWhitespace(obj) {
   for (let key in obj) {
     if (typeof obj[key] === "string") {
@@ -54,9 +56,20 @@ function isEmailValid(email) {
   return { status: true };
 }
 
+async function hashPassword(password) {
+  try {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    return hashedPassword;
+  } catch (error) {
+    throw new Error("Failed to hash password");
+  }
+}
+
 module.exports = {
   trimWhitespace,
   checkNullValues,
   checkRequiredFields,
   isEmailValid,
+  hashPassword,
 };
