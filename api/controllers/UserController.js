@@ -79,6 +79,15 @@ module.exports = {
     const { token } = req.query;
 
     try {
+      const user = await User.findOne({ resetToken: token });
+      if (!user) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid token",
+          error: "Token is expired or invalid",
+        });
+      }
+
       const updatedUser = await User.update({ resetToken: token })
         .set({ password: newPassword, resetToken: null })
         .fetch();
