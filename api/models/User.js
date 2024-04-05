@@ -11,6 +11,7 @@ module.exports = {
     lastName: { type: "string", required: true },
     email: { type: "string", required: true, unique: true, isEmail: true },
     password: { type: "string", required: true },
+    resetToken: { type: "string", allowNull: true },
     userType: {
       type: "string",
       isIn: ["doctor", "member", "admin"],

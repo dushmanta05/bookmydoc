@@ -14,6 +14,7 @@ const {
   checkRequiredFields,
   isEmailValid,
 } = require("../utils/utils");
+const { generateToken } = require("../utils/tokenUtils");
 
 module.exports = {
   create: async function (req, res) {
@@ -56,14 +57,7 @@ module.exports = {
       });
     }
 
-    const htmlFilePath = path.join(
-      __dirname,
-      "..",
-      "emails",
-      "member-welcome.ejs"
-    );
-
-    const renderedHtml = await ejs.renderFile(htmlFilePath, { firstName });
+    const resetToken = generateToken();
 
     try {
       const userData = {
@@ -71,20 +65,40 @@ module.exports = {
         lastName: lastName,
         email: email,
         password: password,
+        resetToken: resetToken,
         userType: "member",
       };
 
       const createdUser = await User.create(userData).fetch();
 
       try {
-        let createdMember = await Member.create({
+        const createdMember = await Member.create({
           disease,
           user: createdUser.id,
         }).fetch();
 
-        sendMail(email, "Welcome to Doctegrity", renderedHtml).catch((error) =>
-          console.log(error)
+        const resetPasswordLink = `http://localhost:1337/reset-password?token=${createdUser.resetToken}`;
+
+        const htmlFilePath = path.join(
+          __dirname,
+          "..",
+          "emails",
+          "member-welcome.ejs"
         );
+
+        const renderedHtml = await ejs.renderFile(htmlFilePath, {
+          firstName,
+          resetPasswordLink,
+        });
+
+        const emailResponse = await sendMail(
+          email,
+          "Welcome to Doctegrity",
+          renderedHtml
+        );
+        if (!emailResponse.status) {
+          return res.status(500).json(emailResponse);
+        }
 
         return res.status(201).json({
           status: true,

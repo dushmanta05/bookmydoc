@@ -5,6 +5,7 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+const { generateToken } = require("../utils/tokenUtils");
 const {
   trimWhitespace,
   checkNullValues,
@@ -15,7 +16,13 @@ const {
 module.exports = {
   create: async function (req, res) {
     try {
-      const requiredFields = ["firstName", "lastName", "email", "password"];
+      const requiredFields = [
+        "firstName",
+        "lastName",
+        "email",
+        "password",
+        "userType",
+      ];
       const trimReqBody = trimWhitespace(req.body);
 
       const nullValuesResponse = checkNullValues(trimReqBody);
@@ -45,7 +52,14 @@ module.exports = {
         });
       }
 
-      const createdUser = await User.create(trimReqBody).fetch();
+      const resetToken = generateToken();
+
+      const userData = {
+        ...trimReqBody,
+        resetToken: resetToken,
+      };
+
+      const createdUser = await User.create(userData).fetch();
       return res.status(201).json({
         status: true,
         message: "user created successfully",
@@ -56,6 +70,35 @@ module.exports = {
         status: false,
         message: "failed to create user",
         error: error.details,
+      });
+    }
+  },
+
+  resetPassword: async function (req, res) {
+    const { newPassword } = req.body;
+    const { token } = req.query;
+
+    try {
+      const updatedUser = await User.update({ resetToken: token })
+        .set({ password: newPassword, resetToken: null })
+        .fetch();
+
+      if (!updatedUser) {
+        return res.status(400).json({
+          status: false,
+          message: "invalid token",
+          error: "token is expired or invalid",
+        });
+      }
+
+      return res
+        .status(200)
+        .json({ status: true, message: "password reset successful" });
+    } catch (error) {
+      return res.status(500).json({
+        status: false,
+        message: "failed to reset password",
+        error: error.details || error.message,
       });
     }
   },
