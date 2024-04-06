@@ -19,9 +19,6 @@ module.exports.routes = {
    ***************************************************************************/
 
   "/": { view: "pages/homepage" },
-  "POST /user/create": "UserController.create",
-  "POST /doctor/create": "DoctorController.create",
-  "POST /member/create": "MemberController.create",
   "POST /reset-password": "UserController.resetPassword",
 
   /***************************************************************************
