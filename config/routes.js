@@ -8,6 +8,8 @@
  * https://sailsjs.com/anatomy/config/routes-js
  */
 
+const authenticate = require("../api/middleware/authenticate");
+
 module.exports.routes = {
   /***************************************************************************
    *                                                                          *
@@ -19,6 +21,7 @@ module.exports.routes = {
    ***************************************************************************/
 
   "/": { view: "pages/homepage" },
+  "POST /login": [authenticate, "AuthController.login"],
   "POST /reset-password": "UserController.resetPassword",
 
   /***************************************************************************

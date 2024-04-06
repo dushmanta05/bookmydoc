@@ -4,7 +4,7 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-
+const jwt = require("jsonwebtoken");
 const { generateToken } = require("../utils/tokenUtils");
 const {
   trimWhitespace,
@@ -17,13 +17,7 @@ const {
 module.exports = {
   create: async function (req, res) {
     try {
-      const requiredFields = [
-        "firstName",
-        "lastName",
-        "email",
-        "password",
-        "userType",
-      ];
+      const requiredFields = ["firstName", "lastName", "email", "password"];
       const trimReqBody = trimWhitespace(req.body);
 
       const nullValuesResponse = checkNullValues(trimReqBody);
@@ -35,6 +29,7 @@ module.exports = {
         trimReqBody,
         requiredFields
       );
+
       if (!requiredFieldsResponse.status) {
         return res.status(400).json(requiredFieldsResponse);
       }
@@ -59,6 +54,7 @@ module.exports = {
 
       const userData = {
         ...trimReqBody,
+        userType: "admin",
         password: hashedPassword,
         resetToken: resetToken,
       };
