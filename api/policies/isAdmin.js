@@ -1,7 +1,7 @@
 module.exports = async function (req, res, next) {
-  const isAdmin = req.body.isAdmin;
+  const userType = req.user?.userType;
 
-  if (isAdmin) {
+  if (userType === "admin") {
     return next();
   } else {
     return res.status(403).json({
