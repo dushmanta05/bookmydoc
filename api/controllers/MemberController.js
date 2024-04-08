@@ -7,7 +7,8 @@
 
 const path = require("path");
 const ejs = require("ejs");
-const csv = require("csv-parser");
+const csvParser = require("csv-parser");
+const { createObjectCsvWriter } = require("csv-writer");
 const fs = require("fs");
 
 const { sendMail } = require("../utils/sendMail");
@@ -133,7 +134,7 @@ module.exports = {
         {
           dirname: "../../uploads",
         },
-        (error, files) => {
+        async (error, files) => {
           if (error) {
             return res.status(500).json({
               status: false,
@@ -150,15 +151,129 @@ module.exports = {
           }
 
           const filePath = files[0].fd;
+          const successfulCreations = [];
+          const failedCreations = [];
           const csvData = [];
+
           fs.createReadStream(filePath)
-            .pipe(csv())
+            .pipe(csvParser())
             .on("data", (data) => csvData.push(data))
-            .on("end", () => {
+            .on("end", async () => {
+              for (const data of csvData) {
+                const requiredFields = [
+                  "firstName",
+                  "lastName",
+                  "email",
+                  "password",
+                  "disease",
+                ];
+                const trimReqBody = trimWhitespace(data);
+                const { firstName, lastName, email, password, disease } =
+                  trimReqBody;
+
+                const nullValuesResponse = checkNullValues(trimReqBody);
+                if (!nullValuesResponse.status) {
+                  failedCreations.push({
+                    user: email,
+                    remark: "contains null values",
+                  });
+                  continue;
+                }
+
+                const requiredFieldsResponse = checkRequiredFields(
+                  trimReqBody,
+                  requiredFields
+                );
+                if (!requiredFieldsResponse.status) {
+                  failedCreations.push({
+                    user: email,
+                    remark: "missing required field values",
+                  });
+                  continue;
+                }
+
+                const emailValidationResponse = isEmailValid(email);
+                if (!emailValidationResponse.status) {
+                  failedCreations.push({
+                    user: email,
+                    remark: "invalid email",
+                  });
+                  continue;
+                }
+
+                /*
+                const existingUser = await User.findOne({ email: email });
+
+                if (existingUser) {
+                  const updateData = {};
+                  if (existingUser.firstName !== firstName) {
+                    updateData.firstName = firstName;
+                  }
+                  if (existingUser.lastName !== lastName) {
+                    updateData.lastName = lastName;
+                  }
+                  if (existingUser.disease !== disease) {
+                    updateData.disease = disease;
+                  }
+                  if (Object.keys(updateData).length > 0) {
+                    try {
+                      await User.updateOne({ id: existingUser.id }).set(
+                        updateData
+                      );
+                      successfulCreations.push({
+                        user: email,
+                        remark: "user updated",
+                      });
+                      continue;
+                    } catch (error) {
+                      failedCreations.push({
+                        user: email,
+                        remark: error.message,
+                      });
+                      continue;
+                    }
+                  }
+                } else {
+                  continue;
+                }
+                */
+
+                const hashedPassword = await hashPassword(password);
+                const resetToken = generateToken();
+                const createdUser = await User.create({
+                  firstName: firstName,
+                  lastName: lastName,
+                  email: email,
+                  password: hashedPassword,
+                  resetToken: resetToken,
+                  userType: "member",
+                }).fetch();
+
+                if (createdUser) {
+                  try {
+                    await Member.create({
+                      disease,
+                      user: createdUser.id,
+                    }).fetch();
+
+                    successfulCreations.push({
+                      user: email,
+                      remark: "member created",
+                    });
+                    continue;
+                  } catch (error) {
+                    await User.destroyOne({ id: createdUser.id });
+                    failedCreations.push({
+                      user: email,
+                      remark: error.message,
+                    });
+                  }
+                }
+              }
+              await writeCsvFiles(successfulCreations, failedCreations);
               return res.status(200).json({
                 status: true,
-                message: "csv data parsed succesfully",
-                csvData: csvData,
+                message: "CSV data processed successfully",
               });
             });
         }
@@ -171,3 +286,38 @@ module.exports = {
     }
   },
 };
+
+async function writeCsvFiles(successfulCreations, failedCreations) {
+  const successfulCsvFilePath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "csv",
+    "successful_creations.csv"
+  );
+  const failedCsvFilePath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "csv",
+    "failed_creations.csv"
+  );
+  const csvWriterSuccess = createObjectCsvWriter({
+    path: successfulCsvFilePath,
+    header: [
+      { id: "user", title: "User" },
+      { id: "remark", title: "Remark" },
+    ],
+  });
+
+  const csvWriterFailed = createObjectCsvWriter({
+    path: failedCsvFilePath,
+    header: [
+      { id: "user", title: "User" },
+      { id: "remark", title: "Remark" },
+    ],
+  });
+
+  await csvWriterSuccess.writeRecords(successfulCreations);
+  await csvWriterFailed.writeRecords(failedCreations);
+}
