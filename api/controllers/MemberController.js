@@ -7,6 +7,8 @@
 
 const path = require("path");
 const ejs = require("ejs");
+const csv = require("csv-parser");
+const fs = require("fs");
 
 const { sendMail } = require("../utils/sendMail");
 const {
@@ -127,24 +129,38 @@ module.exports = {
   uploadCSV: async function (req, res) {
     try {
       const uploadFile = req.file("avatar");
-      console.log(uploadFile);
       uploadFile.upload(
         {
           dirname: "../../uploads",
         },
-        (error) => {
+        (error, files) => {
           if (error) {
             return res.status(500).json({
               status: false,
-              message: "failed to upload",
+              message: "Failed to upload",
               error: error.message || error.details,
             });
           }
 
-          return res.status(200).json({
-            status: true,
-            message: "File uploaded successfully",
-          });
+          if (files.length === 0) {
+            return res.status(400).json({
+              status: false,
+              message: "No file uploaded",
+            });
+          }
+
+          const filePath = files[0].fd;
+          const csvData = [];
+          fs.createReadStream(filePath)
+            .pipe(csv())
+            .on("data", (data) => csvData.push(data))
+            .on("end", () => {
+              return res.status(200).json({
+                status: true,
+                message: "csv data parsed succesfully",
+                csvData: csvData,
+              });
+            });
         }
       );
     } catch (error) {
