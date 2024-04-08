@@ -7,6 +7,7 @@
 
 const path = require("path");
 const ejs = require("ejs");
+
 const { sendMail } = require("../utils/sendMail");
 const {
   trimWhitespace,
@@ -119,6 +120,37 @@ module.exports = {
         status: false,
         message: "failed to create member",
         error: error.details,
+      });
+    }
+  },
+
+  uploadCSV: async function (req, res) {
+    try {
+      const uploadFile = req.file("avatar");
+      console.log(uploadFile);
+      uploadFile.upload(
+        {
+          dirname: "../../uploads",
+        },
+        (error) => {
+          if (error) {
+            return res.status(500).json({
+              status: false,
+              message: "failed to upload",
+              error: error.message || error.details,
+            });
+          }
+
+          return res.status(200).json({
+            status: true,
+            message: "File uploaded successfully",
+          });
+        }
+      );
+    } catch (error) {
+      return res.status(500).json({
+        message: "Failed to upload file",
+        error: error.message || error.details,
       });
     }
   },

@@ -27,6 +27,7 @@ module.exports.routes = {
   "POST /login": [authenticate, "AuthController.login"],
   "POST /reset-password": "UserController.resetPassword",
 
+  "POST /csv-upload": [authenticate, "MemberController.uploadCSV"],
   /***************************************************************************
    *                                                                          *
    * More custom routes here...                                               *
