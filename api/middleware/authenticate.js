@@ -10,7 +10,12 @@ module.exports = async function authenticate(req, res, next) {
 
   try {
     const decodedJwtToken = jwt.verify(jwtToken, process.env.JWT_SECRET);
-    req.user = { id: decodedJwtToken.id, userType: decodedJwtToken.userType };
+    req.user = {
+      id: decodedJwtToken.id,
+      userType: decodedJwtToken.userType,
+      email: decodedJwtToken.email,
+      userName: decodedJwtToken.userName,
+    };
     next();
   } catch (error) {
     return res.status(401).json({ status: false, message: "invalid token" });

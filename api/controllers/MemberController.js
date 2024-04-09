@@ -11,7 +11,7 @@ const csvParser = require("csv-parser");
 const { createObjectCsvWriter } = require("csv-writer");
 const fs = require("fs");
 
-const { sendMail } = require("../utils/sendMail");
+const { sendMail, sendMailWithCSV } = require("../utils/sendMail");
 const {
   trimWhitespace,
   checkNullValues,
@@ -151,8 +151,7 @@ module.exports = {
           }
 
           const filePath = files[0].fd;
-          const successfulCreations = [];
-          const failedCreations = [];
+          const processedData = [];
           const csvData = [];
 
           fs.createReadStream(filePath)
@@ -173,8 +172,11 @@ module.exports = {
 
                 const nullValuesResponse = checkNullValues(trimReqBody);
                 if (!nullValuesResponse.status) {
-                  failedCreations.push({
-                    user: email,
+                  processedData.push({
+                    id: null,
+                    email: email || "null",
+                    name: `${firstName || "null"} ${lastName || "null"}`,
+                    status: false,
                     remark: "contains null values",
                   });
                   continue;
@@ -185,8 +187,11 @@ module.exports = {
                   requiredFields
                 );
                 if (!requiredFieldsResponse.status) {
-                  failedCreations.push({
-                    user: email,
+                  processedData.push({
+                    id: null,
+                    email: email || "null",
+                    name: `${firstName || "null"} ${lastName || "null"}`,
+                    status: false,
                     remark: "missing required field values",
                   });
                   continue;
@@ -194,8 +199,11 @@ module.exports = {
 
                 const emailValidationResponse = isEmailValid(email);
                 if (!emailValidationResponse.status) {
-                  failedCreations.push({
-                    user: email,
+                  processedData.push({
+                    id: "null",
+                    email: email || "null",
+                    name: `${firstName || "null"} ${lastName || "null"}`,
+                    status: false,
                     remark: "invalid email",
                   });
                   continue;
@@ -220,13 +228,13 @@ module.exports = {
                       await User.updateOne({ id: existingUser.id }).set(
                         updateData
                       );
-                      successfulCreations.push({
+                      processedData.push({
                         user: email,
                         remark: "user updated",
                       });
                       continue;
                     } catch (error) {
-                      failedCreations.push({
+                      processedData.push({
                         user: email,
                         remark: error.message,
                       });
@@ -251,30 +259,79 @@ module.exports = {
 
                 if (createdUser) {
                   try {
-                    await Member.create({
+                    const createdMember = await Member.create({
                       disease,
                       user: createdUser.id,
                     }).fetch();
 
-                    successfulCreations.push({
-                      user: email,
+                    processedData.push({
+                      id: createdUser.id,
+                      email: createdUser.email,
+                      name: `${createdUser.firstName} ${createdUser.lastName}`,
+                      status: true,
                       remark: "member created",
                     });
                     continue;
                   } catch (error) {
                     await User.destroyOne({ id: createdUser.id });
-                    failedCreations.push({
-                      user: email,
+                    processedData.push({
+                      id: null,
+                      email: email || "null",
+                      name: `${firstName || "null"} ${lastName || "null"}`,
+                      status: false,
                       remark: error.message,
                     });
                   }
                 }
               }
-              await writeCsvFiles(successfulCreations, failedCreations);
-              return res.status(200).json({
-                status: true,
-                message: "CSV data processed successfully",
+              await writeCsvFiles(processedData);
+
+              fs.unlink(filePath, (err) => {
+                if (err) {
+                  console.error("Error deleting uploaded CSV file:", err);
+                } else {
+                  console.log("Uploaded CSV file deleted successfully");
+                }
               });
+
+              const processedCsvPath = path.join(
+                __dirname,
+                "../../csv/processedData.csv"
+              );
+
+              const adminEmail = req.user.email;
+              const userName = req.user.userName;
+              const subject = "CSV Processing Results";
+
+              const htmlFilePath = path.join(
+                __dirname,
+                "..",
+                "emails",
+                "csv-processed-result.ejs"
+              );
+
+              const renderedHtml = await ejs.renderFile(htmlFilePath, {
+                userName,
+              });
+
+              const emailResponse = await sendMailWithCSV(
+                adminEmail,
+                subject,
+                renderedHtml,
+                processedCsvPath
+              );
+              if (emailResponse.status) {
+                fs.unlink(processedCsvPath, (err) => {
+                  if (err) {
+                    console.error("Error deleting processed CSV file:", err);
+                  } else {
+                    console.log("Processed CSV file deleted successfully");
+                  }
+                });
+                res.status(200).json(emailResponse);
+              } else {
+                res.status(500).json(emailResponse);
+              }
             });
         }
       );
@@ -287,37 +344,25 @@ module.exports = {
   },
 };
 
-async function writeCsvFiles(successfulCreations, failedCreations) {
-  const successfulCsvFilePath = path.join(
+async function writeCsvFiles(processedData) {
+  const processedCsvFilePath = path.join(
     __dirname,
     "..",
     "..",
     "csv",
-    "successful_creations.csv"
+    "processedData.csv"
   );
-  const failedCsvFilePath = path.join(
-    __dirname,
-    "..",
-    "..",
-    "csv",
-    "failed_creations.csv"
-  );
-  const csvWriterSuccess = createObjectCsvWriter({
-    path: successfulCsvFilePath,
+
+  const processedCsvWriter = createObjectCsvWriter({
+    path: processedCsvFilePath,
     header: [
-      { id: "user", title: "User" },
+      { id: "id", title: "Id" },
+      { id: "email", title: "Email" },
+      { id: "name", title: "Name" },
+      { id: "status", title: "Status" },
       { id: "remark", title: "Remark" },
     ],
   });
 
-  const csvWriterFailed = createObjectCsvWriter({
-    path: failedCsvFilePath,
-    header: [
-      { id: "user", title: "User" },
-      { id: "remark", title: "Remark" },
-    ],
-  });
-
-  await csvWriterSuccess.writeRecords(successfulCreations);
-  await csvWriterFailed.writeRecords(failedCreations);
+  await processedCsvWriter.writeRecords(processedData);
 }
