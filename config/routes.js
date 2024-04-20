@@ -23,9 +23,10 @@ module.exports.routes = {
   "/": { view: "pages/homepage" },
   "POST /user": [authenticate, "UserController.create"],
   "POST /member": [authenticate, "MemberController.create"],
+  "GET /member/:id": [authenticate, "MemberController.findOne"],
   "POST /doctor": [authenticate, "DoctorController.create"],
-  "POST /login": [authenticate, "AuthController.login"],
-  "POST /reset-password": "UserController.resetPassword",
+  "POST /login": ["AuthController.login"],
+  "POST /reset-password": ["UserController.resetPassword"],
 
   "POST /csv-upload": [authenticate, "MemberController.uploadCSV"],
   /***************************************************************************

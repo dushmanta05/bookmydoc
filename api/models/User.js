@@ -18,4 +18,8 @@ module.exports = {
       required: true,
     },
   },
+
+  customToJSON: function () {
+    return _.omit(this, ["password", "resetToken"]);
+  },
 };

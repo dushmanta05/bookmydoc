@@ -22,6 +22,7 @@ module.exports.policies = {
   },
   MemberController: {
     create: "isAdmin",
+    uploadCSV: "isAdmin",
   },
   DoctorController: {
     create: "isAdmin",

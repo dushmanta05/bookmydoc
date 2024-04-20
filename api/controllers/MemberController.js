@@ -21,6 +21,8 @@ const {
 } = require("../utils/utils");
 const { generateToken } = require("../utils/tokenUtils");
 
+const { filterMemberData } = require("../services/memberDataService.js");
+
 module.exports = {
   create: async function (req, res) {
     const requiredFields = [
@@ -340,6 +342,22 @@ module.exports = {
         message: "Failed to upload file",
         error: error.message || error.details,
       });
+    }
+  },
+
+  findOne: async function (req, res) {
+    try {
+      const memberId = req.params.id;
+      const member = await Member.findOne({ id: memberId }).populate("user");
+
+      if (!member) {
+        return res.json({ message: "Member not found" });
+      }
+
+      const memberData = filterMemberData(member, req);
+      return res.json(memberData);
+    } catch (error) {
+      return res.json(error);
     }
   },
 };

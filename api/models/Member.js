@@ -8,6 +8,7 @@
 module.exports = {
   attributes: {
     disease: { type: "string", required: true },
+    isMemberFlagged: { type: "boolean", allowNull: true },
 
     user: { model: "user", unique: true },
   },
