@@ -5,19 +5,19 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const {
   trimWhitespace,
   checkNullValues,
   checkRequiredFields,
-  isEmailValid,
-} = require("../utils/utils");
+  isEmailValid
+} = require('../utils/utils');
 
 module.exports = {
   login: async function (req, res) {
     try {
-      const requiredFields = ["email", "password"];
+      const requiredFields = ['email', 'password'];
       const trimReqBody = trimWhitespace(req.body);
 
       const nullValuesResponse = checkNullValues(trimReqBody);
@@ -44,8 +44,8 @@ module.exports = {
       if (!user) {
         return res.status(404).json({
           status: false,
-          message: "user not found",
-          error: "invalid email",
+          message: 'user not found',
+          error: 'invalid email'
         });
       }
 
@@ -57,7 +57,7 @@ module.exports = {
       if (!validPassword) {
         return res
           .status(401)
-          .json({ status: false, message: "invalid password" });
+          .json({ status: false, message: 'invalid password' });
       }
 
       const token = jwt.sign(
@@ -65,23 +65,23 @@ module.exports = {
           id: user.id,
           email: user.email,
           userType: user.userType,
-          userName: `${user.firstName} ${user.lastName}`,
+          userName: `${user.firstName} ${user.lastName}`
         },
         process.env.JWT_SECRET,
-        { expiresIn: "7d" }
+        { expiresIn: '7d' }
       );
 
       return res.status(200).json({
         status: true,
-        message: "logged in successfully",
-        token: token,
+        message: 'logged in successfully',
+        token: token
       });
     } catch (error) {
       return res.status(500).json({
         status: false,
-        message: "failed to login",
-        error: error.message,
+        message: 'failed to login',
+        error: error.message
       });
     }
-  },
+  }
 };

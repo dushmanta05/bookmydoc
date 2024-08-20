@@ -1,11 +1,11 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 module.exports = async function authenticate(req, res, next) {
-  const jwtToken = req.headers.authorization.replace("Bearer ", "");
+  const jwtToken = req.headers.authorization.replace('Bearer ', '');
   if (!jwtToken) {
     return res
       .status(401)
-      .json({ status: false, message: "No token provided" });
+      .json({ status: false, message: 'No token provided' });
   }
 
   try {
@@ -14,10 +14,11 @@ module.exports = async function authenticate(req, res, next) {
       id: decodedJwtToken.id,
       userType: decodedJwtToken.userType,
       email: decodedJwtToken.email,
-      userName: decodedJwtToken.userName,
+      userName: decodedJwtToken.userName
     };
     next();
   } catch (error) {
-    return res.status(401).json({ status: false, message: "invalid token" });
+    console.error(error);
+    return res.status(401).json({ status: false, message: 'invalid token' });
   }
 };

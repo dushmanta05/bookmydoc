@@ -10,8 +10,6 @@
  *   https://sailsjs.com/anatomy/tasks/pipeline.js
  */
 
-
-
 //  ██████╗ ██╗      █████╗ ██╗███╗   ██╗        ██████╗███████╗███████╗
 //  ██╔══██╗██║     ██╔══██╗██║████╗  ██║       ██╔════╝██╔════╝██╔════╝
 //  ██████╔╝██║     ███████║██║██╔██╗ ██║       ██║     ███████╗███████╗
@@ -32,7 +30,6 @@
 // > you'll want to change `assets/styles/importer.less` instead.
 //
 var cssFilesToInject = [
-
   // Bring in `.css` files for themes and style guides (e.g. Bootstrap, Foundation)
   'dependencies/**/*.css',
 
@@ -41,7 +38,6 @@ var cssFilesToInject = [
   // items here, _above_ this one.
   'styles/**/*.css'
 ];
-
 
 //   ██████╗██╗     ██╗███████╗███╗   ██╗████████╗   ███████╗██╗██████╗ ███████╗
 //  ██╔════╝██║     ██║██╔════╝████╗  ██║╚══██╔══╝   ██╔════╝██║██╔══██╗██╔════╝
@@ -60,7 +56,6 @@ var cssFilesToInject = [
 // Client-side javascript files to inject as <script> tags, in order.
 //
 var jsFilesToInject = [
-
   // Load `sails.io` before everything else.
   'dependencies/sails.io.js',
 
@@ -74,7 +69,6 @@ var jsFilesToInject = [
   // here, _above_ this one.
   'js/**/*.js'
 ];
-
 
 //   ██████╗██╗     ██╗███████╗███╗   ██╗████████╗   ███████╗██╗██████╗ ███████╗
 //  ██╔════╝██║     ██║██╔════╝████╗  ██║╚══██╔══╝   ██╔════╝██║██╔══██╗██╔════╝
@@ -101,11 +95,7 @@ var jsFilesToInject = [
 // > to check out:
 // >   https://sailsjs.com/docs/concepts/assets/task-automation
 //
-var templateFilesToInject = [
-  'templates/**/*.html'
-];
-
-
+var templateFilesToInject = ['templates/**/*.html'];
 
 //  ███╗   ███╗██╗███████╗ ██████╗       ███████╗███████╗████████╗██╗   ██╗██████╗
 //  ████╗ ████║██║██╔════╝██╔════╝       ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
@@ -124,21 +114,21 @@ var tmpPath = '.tmp/public/';
 // Prefix relative paths to source files so they point to the proper locations
 // (i.e. where the other Grunt tasks spit them out, or in some cases, where
 // they reside in the first place)
-module.exports.cssFilesToInject = cssFilesToInject.map((cssPath)=>{
+module.exports.cssFilesToInject = cssFilesToInject.map(cssPath => {
   // If we're ignoring the file, make sure the ! is at the beginning of the path
   if (cssPath[0] === '!') {
     return require('path').join('!' + tmpPath, cssPath.substr(1));
   }
   return require('path').join(tmpPath, cssPath);
 });
-module.exports.jsFilesToInject = jsFilesToInject.map((jsPath)=>{
+module.exports.jsFilesToInject = jsFilesToInject.map(jsPath => {
   // If we're ignoring the file, make sure the ! is at the beginning of the path
   if (jsPath[0] === '!') {
     return require('path').join('!' + tmpPath, jsPath.substr(1));
   }
   return require('path').join(tmpPath, jsPath);
 });
-module.exports.templateFilesToInject = templateFilesToInject.map((tplPath)=>{
+module.exports.templateFilesToInject = templateFilesToInject.map(tplPath => {
   // If we're ignoring the file, make sure the ! is at the beginning of the path
   if (tplPath[0] === '!') {
     return require('path').join('!assets/', tplPath.substr(1));

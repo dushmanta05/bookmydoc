@@ -37,9 +37,9 @@
   "main": "app.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/nte-825-vm/sail-doc.git"
+    "url": "git://github.com/dushmanta05/bookmydoc.git"
   },
-  "author": "nte-825-vm",
+  "author": "Dushmanta",
   "license": "",
   "engines": {
     "node": "^21.6"

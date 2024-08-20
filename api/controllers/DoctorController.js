@@ -5,26 +5,26 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const path = require("path");
-const ejs = require("ejs");
-const { sendMail } = require("../utils/sendMail");
+const path = require('path');
+const ejs = require('ejs');
+const { sendMail } = require('../utils/sendMail');
 const {
   trimWhitespace,
   checkNullValues,
   checkRequiredFields,
   isEmailValid,
-  hashPassword,
-} = require("../utils/utils");
-const { generateToken } = require("../utils/tokenUtils");
+  hashPassword
+} = require('../utils/utils');
+const { generateToken } = require('../utils/tokenUtils');
 
 module.exports = {
   create: async function (req, res) {
     const requiredFields = [
-      "firstName",
-      "lastName",
-      "email",
-      "password",
-      "speciality",
+      'firstName',
+      'lastName',
+      'email',
+      'password',
+      'speciality'
     ];
 
     const trimReqBody = trimWhitespace(req.body);
@@ -53,8 +53,8 @@ module.exports = {
     if (existingUser) {
       return res.status(400).json({
         status: false,
-        message: "email address already in use",
-        error: "duplicate email address",
+        message: 'email address already in use',
+        error: 'duplicate email address'
       });
     }
 
@@ -68,7 +68,7 @@ module.exports = {
         email: email,
         password: hashedPassword,
         resetToken: resetToken,
-        userType: "doctor",
+        userType: 'doctor'
       };
 
       const createdUser = await User.create(userData).fetch();
@@ -76,26 +76,26 @@ module.exports = {
       try {
         const createdDoctor = await Doctor.create({
           speciality,
-          user: createdUser.id,
+          user: createdUser.id
         }).fetch();
 
         const resetPasswordLink = `http://localhost:1337/reset-password?token=${createdUser.resetToken}`;
 
         const htmlFilePath = path.join(
           __dirname,
-          "..",
-          "emails",
-          "doctor-welcome.ejs"
+          '..',
+          'emails',
+          'doctor-welcome.ejs'
         );
 
         const renderedHtml = await ejs.renderFile(htmlFilePath, {
           firstName,
-          resetPasswordLink,
+          resetPasswordLink
         });
 
         const emailResponse = await sendMail(
           email,
-          "Welcome to Doctegrity",
+          'Welcome to Doctegrity',
           renderedHtml
         );
         if (!emailResponse.status) {
@@ -104,23 +104,23 @@ module.exports = {
 
         return res.status(201).json({
           status: true,
-          message: "doctor created successfully",
-          doctorData: createdDoctor,
+          message: 'doctor created successfully',
+          doctorData: createdDoctor
         });
       } catch (error) {
         await User.destroyOne({ id: createdUser.id });
         return res.status(400).json({
           status: false,
-          message: "failed to create doctor",
-          error: error.details,
+          message: 'failed to create doctor',
+          error: error.details
         });
       }
     } catch (error) {
       return res.status(500).json({
         status: false,
-        message: "failed to create doctor",
-        error: error.details,
+        message: 'failed to create doctor',
+        error: error.details
       });
     }
-  },
+  }
 };

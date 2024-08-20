@@ -7,8 +7,8 @@
 
 module.exports = {
   attributes: {
-    speciality: { type: "string", required: true },
+    speciality: { type: 'string', required: true },
 
-    user: { model: "user", unique: true },
-  },
+    user: { model: 'user', unique: true }
+  }
 };

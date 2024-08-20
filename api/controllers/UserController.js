@@ -4,20 +4,19 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-const jwt = require("jsonwebtoken");
-const { generateToken } = require("../utils/tokenUtils");
+const { generateToken } = require('../utils/tokenUtils');
 const {
   trimWhitespace,
   checkNullValues,
   checkRequiredFields,
   isEmailValid,
-  hashPassword,
-} = require("../utils/utils");
+  hashPassword
+} = require('../utils/utils');
 
 module.exports = {
   create: async function (req, res) {
     try {
-      const requiredFields = ["firstName", "lastName", "email", "password"];
+      const requiredFields = ['firstName', 'lastName', 'email', 'password'];
       const trimReqBody = trimWhitespace(req.body);
 
       const nullValuesResponse = checkNullValues(trimReqBody);
@@ -43,8 +42,8 @@ module.exports = {
       if (existingUser) {
         return res.status(400).json({
           status: false,
-          message: "email address already in use",
-          error: "duplicate email address",
+          message: 'email address already in use',
+          error: 'duplicate email address'
         });
       }
 
@@ -54,22 +53,22 @@ module.exports = {
 
       const userData = {
         ...trimReqBody,
-        userType: "admin",
+        userType: 'admin',
         password: hashedPassword,
-        resetToken: resetToken,
+        resetToken: resetToken
       };
 
       const createdUser = await User.create(userData).fetch();
       return res.status(201).json({
         status: true,
-        message: "user created successfully",
-        data: createdUser,
+        message: 'user created successfully',
+        data: createdUser
       });
     } catch (error) {
       return res.status(500).json({
         status: false,
-        message: "failed to create user",
-        error: error.details,
+        message: 'failed to create user',
+        error: error.details
       });
     }
   },
@@ -83,8 +82,8 @@ module.exports = {
       if (!user) {
         return res.status(400).json({
           status: false,
-          message: "Invalid token",
-          error: "Token is expired or invalid",
+          message: 'Invalid token',
+          error: 'Token is expired or invalid'
         });
       }
 
@@ -97,20 +96,20 @@ module.exports = {
       if (!updatedUser) {
         return res.status(400).json({
           status: false,
-          message: "invalid token",
-          error: "token is expired or invalid",
+          message: 'invalid token',
+          error: 'token is expired or invalid'
         });
       }
 
       return res
         .status(200)
-        .json({ status: true, message: "password reset successful" });
+        .json({ status: true, message: 'password reset successful' });
     } catch (error) {
       return res.status(500).json({
         status: false,
-        message: "failed to reset password",
-        error: error.details || error.message,
+        message: 'failed to reset password',
+        error: error.details || error.message
       });
     }
-  },
+  }
 };

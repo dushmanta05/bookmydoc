@@ -1,8 +1,8 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require('bcrypt');
 
 function trimWhitespace(obj) {
   for (let key in obj) {
-    if (typeof obj[key] === "string") {
+    if (typeof obj[key] === 'string') {
       obj[key] = obj[key].trim();
     }
   }
@@ -12,16 +12,16 @@ function trimWhitespace(obj) {
 function checkNullValues(obj) {
   const nullValues = [];
   for (const key in obj) {
-    if (obj[key] === null || obj[key] === "") {
+    if (obj[key] === null || obj[key] === '') {
       nullValues.push(key);
     }
   }
   if (nullValues.length > 0) {
-    const fields = nullValues.map((field) => `'${field}'`).join(", ");
+    const fields = nullValues.map(field => `'${field}'`).join(', ');
     return {
       status: false,
       message: `${fields} cannot be null or empty`,
-      error: "null value error",
+      error: 'null value error'
     };
   }
   return { status: true };
@@ -37,8 +37,8 @@ function checkRequiredFields(reqBody, requiredFields) {
   if (missingFields.length > 0) {
     return {
       status: false,
-      message: `${missingFields.join(", ")} fields are required`,
-      error: "missing required fields",
+      message: `${missingFields.join(', ')} fields are required`,
+      error: 'missing required fields'
     };
   }
   return { status: true };
@@ -49,8 +49,8 @@ function isEmailValid(email) {
   if (!emailRegex.test(email)) {
     return {
       status: false,
-      message: "Invalid email format",
-      error: "Validation error",
+      message: 'Invalid email format',
+      error: 'Validation error'
     };
   }
   return { status: true };
@@ -62,7 +62,7 @@ async function hashPassword(password) {
     const hashedPassword = await bcrypt.hash(password, salt);
     return hashedPassword;
   } catch (error) {
-    throw new Error("Failed to hash password");
+    throw new Error('Failed to hash password');
   }
 }
 
@@ -71,5 +71,5 @@ module.exports = {
   checkNullValues,
   checkRequiredFields,
   isEmailValid,
-  hashPassword,
+  hashPassword
 };
