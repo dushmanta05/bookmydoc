@@ -24,11 +24,11 @@ module.exports = {
       'lastName',
       'email',
       'password',
-      'speciality'
+      'specialty'
     ];
 
     const trimReqBody = trimWhitespace(req.body);
-    const { firstName, lastName, email, password, speciality } = trimReqBody;
+    const { firstName, lastName, email, password, specialty } = trimReqBody;
 
     const nullValuesResponse = checkNullValues(trimReqBody);
     if (!nullValuesResponse.status) {
@@ -75,7 +75,7 @@ module.exports = {
 
       try {
         const createdDoctor = await Doctor.create({
-          speciality,
+          specialty: specialty,
           user: createdUser.id
         }).fetch();
 
