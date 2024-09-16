@@ -6,9 +6,7 @@
  * to configure your Sails app for production.  The configuration in this file
  * is only used in your production environment, i.e. when you lift your app using:
  *
- * ```
  * NODE_ENV=production node app
- * ```
  *
  * > If you're using git as a version control solution for your Sails app,
  * > this file WILL BE COMMITTED to your repository by default, unless you add
@@ -66,7 +64,7 @@ module.exports = {
   models: {
     /**
      *
-     * To help avoid accidents, Sails automatically sets the automigration
+     * To help avoid accidents, Sails automatically sets the auto-migration
      * strategy to "safe" when your app lifts in production mode.
      * (This is just here as a reminder.)
      *
@@ -77,11 +75,10 @@ module.exports = {
     migrate: 'safe'
 
     /*
-     *
      * If, in production, this app has access to physical-layer CASCADE
      * constraints (e.g. PostgreSQL or MySQL), then set those up in the
      * database and uncomment this to disable Waterline's `cascadeOnDestroy`
-     * polyfill.  (Otherwise, if you are using a databse like Mongo, you might
+     * polyfill.  (Otherwise, if you are using a database like Mongo, you might
      * choose to keep this enabled.)
      *
      */
@@ -176,7 +173,7 @@ module.exports = {
      *
      * Production configuration for the session ID cookie name.
      *
-     * We reccomend prefixing your session cookie with `__Host-`, this limits
+     * We recommend prefixing your session cookie with `__Host-`, this limits
      * the scope of your cookie to a single origin to protect against same-site
      * attacks.
      *
