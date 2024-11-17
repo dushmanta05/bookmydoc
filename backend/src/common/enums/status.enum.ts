@@ -3,4 +3,5 @@ export enum Status {
   INACTIVE = 'inactive',
   PENDING = 'pending',
   BLOCKED = 'blocked',
+  DELETED = 'deleted',
 }
