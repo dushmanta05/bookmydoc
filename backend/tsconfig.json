@@ -10,6 +10,11 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@enums/*": ["src/common/enums/*"],
+      "@utils/*": ["src/common/utils/*"],
+      "@pipes/*": ["src/common/pipes/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
