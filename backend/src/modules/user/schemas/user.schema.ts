@@ -1,9 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import type { HydratedDocument } from 'mongoose';
+import { UserRole } from '@enums/user.enum';
 
 export type UserDocument = HydratedDocument<User>;
 
-@Schema()
+@Schema({
+  timestamps: true,
+  versionKey: '_v',
+})
 export class User {
   @Prop({ required: true })
   firstName: string;
@@ -14,7 +18,7 @@ export class User {
   @Prop()
   fullName: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, enum: UserRole, default: UserRole.MEMBER })
   userType: string;
 
   @Prop({ unique: true, required: true })
@@ -23,11 +27,43 @@ export class User {
   @Prop({ unique: true, required: true })
   mobile: string;
 
-  @Prop({ required: true, enum: ['admin', 'member', 'doctor', 'superAdmin'] })
+  @Prop({ unique: true, required: true })
+  username: string;
+
+  @Prop({ required: true })
   password: string;
 
   @Prop({ required: true })
   resetToken: string;
+
+  @Prop({ default: () => Date.now() })
+  createdAt: number;
+
+  @Prop({ default: () => Date.now() })
+  updatedAt: number;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.pre('save', function (next) {
+  this.createdAt = Date.now();
+  this.updatedAt = Date.now();
+  next();
+});
+
+UserSchema.pre('findOneAndUpdate', function (next) {
+  this.set({ updatedAt: Date.now() });
+  next();
+});
+
+UserSchema.pre('updateOne', function (next) {
+  this.set({ updatedAt: Date.now() });
+  next();
+});
+
+UserSchema.pre('updateMany', function (next) {
+  this.set({ updatedAt: Date.now() });
+  next();
+});
+
+export { UserSchema };
