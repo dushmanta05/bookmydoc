@@ -8,7 +8,7 @@ import { MemberModule } from './modules/member/member.module';
 import { CompanyModule } from './modules/company/company.module';
 import { DoctorModule } from './modules/doctor/doctor.module';
 import { AppointmentModule } from './modules/appointment/appointment.module';
-import { DatabaseModule } from './database/database.module';
+import { DatabaseModule } from './core/database/database.module';
 import configuration from './config/configuration';
 
 @Module({
